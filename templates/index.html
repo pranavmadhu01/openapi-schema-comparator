@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/renderjson.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <title>OpenAPI schema comparator</title>
+</head>
+
+<body>
+
+    <form method="POST" class="container" action="/">
+        <div class="left-column">
+            <div class="title-wrapper">
+                <h1>OpenAPI Schema Validator</h1>
+                <span>Input your json schema here</span>
+            </div>
+            <textarea name="openapi_schema"
+                placeholder="Paste your OpenAPI JSON schema here">{{ openapi_schema_data }}</textarea>
+            <button type="submit">Parse Schema</button>
+        </div>
+        <div class="middle-column">
+            {% if paths %}
+            <div class="select-wrapper">
+                <select name="selected_path">
+                    <option value="">select an api path to parse</option>
+                    {% for path in paths %}
+                    <option value="{{ path }}" {% if selected_path==path %}selected{% endif %}>{{ path }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Get Schema</button>
+            </div>
+            {% endif %}
+            {% if response_schema %}
+            <div class="request-response-tab-list">
+                <div class="request-response-tab-list-item">
+                    <span>Request Schema</span>
+                </div>
+                <div class="request-response-tab-list-item">
+                    <span>Response Schema</span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="request-response-schema-validation-container">
+                {% if response_schema %}
+                <div class="request-response-schema" id="request-response-schema">
+                    <div class="request-response-schema-rawjson" id="request-response-schema-rawjson">{{ response_schema
+                        | tojson(indent=2) }}</div>
+                    <div class="request-response-schema-jsonrender" id="request-response-schema-jsonrender"></div>
+                </div>
+                <div>
+                    <textarea name="response_data" id=""
+                        placeholder="paste your response JSON to validate">{{ response_data }}</textarea>
+                    <button type="submit">Compare</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if response_data %}
+        <div class="right-column right-specific">
+            <div>
+                <h1>Validation Result</h1>
+                {% if response_validation_errors %}
+                <span>Validation completed with errors</span>
+                {% else %}
+                <span>Validation completed successfully</span>
+                {% endif %}
+            </div>
+            {% if response_validation_errors %}
+            {% for error in response_validation_errors %}
+            <div class="error-card">{{ error }}</div>
+            {% endfor %}
+            {% else %}
+            <div class="success-card">Validation Success</div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/renderjson@1.4.0/renderjson.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/renderjson.js') }}"></script>
+    <script>
+
+        const request_response_schema_rawjson = document.getElementById("request-response-schema-rawjson")
+        const request_response_schema_jsonrender = document.getElementById("request-response-schema-jsonrender")
+
+        const request_response_schema_text = JSON.parse(request_response_schema_rawjson.innerHTML)
+
+        request_response_schema_jsonrender.appendChild(renderjson.set_show_to_level(2)(request_response_schema_text));
+    </script>
+</body>
+
+</html>
